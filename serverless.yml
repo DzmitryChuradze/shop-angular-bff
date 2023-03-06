@@ -1,0 +1,36 @@
+service: shop-angular-be
+
+plugins:
+  - serverless-webpack
+
+package:
+  individually: true
+
+custom:
+  webpack:
+    packager: npm
+
+provider:
+  name: aws
+  region: eu-west-1
+  runtime: nodejs14.x
+  httpApi:
+    cors: true
+
+functions:
+  getProducts:
+    handler: src/getProducts.handler
+    events:
+      - http:
+          path: products
+          method: get
+  getProductById:
+    handler: src/getProductById.handler
+    events:
+      - http:
+          path: products/{productId}
+          method: get
+          request:
+            parameters:
+              paths:
+                productId: true

@@ -34,3 +34,12 @@ functions:
             parameters:
               paths:
                 productId: true
+  createProduct:
+    handler: src/createProduct.handler
+    events:
+      - http:
+          path: products
+          method: post
+          request:
+            schemas:
+              application/json: ${file(src/schemas/createProductSchema.json)}

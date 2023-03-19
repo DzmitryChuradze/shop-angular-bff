@@ -16,6 +16,16 @@ provider:
   runtime: nodejs14.x
   httpApi:
     cors: true
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: "s3:ListBucket"
+      Resource:
+        - "arn:aws:s3:::rs-school-app-bucket-upload"
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+        - "arn:aws:s3:::rs-school-app-bucket-upload/*"
 
 functions:
   getProducts:
@@ -43,3 +53,22 @@ functions:
           request:
             schemas:
               application/json: ${file(src/schemas/createProductSchema.json)}
+  importProductsFile:
+    handler: src/importProductsFile.handler
+    events:
+      - http:
+          path: import
+          method: get
+          request:
+            parameters:
+              querystrings:
+                name: true
+  importFileParser:
+    handler: src/importFileParser.handler
+    events:
+      - s3:
+          bucket: rs-school-app-bucket-upload
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true

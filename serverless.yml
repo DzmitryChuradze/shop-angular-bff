@@ -16,16 +16,55 @@ provider:
   runtime: nodejs14.x
   httpApi:
     cors: true
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action: "s3:ListBucket"
-      Resource:
-        - "arn:aws:s3:::rs-school-app-bucket-upload"
-    - Effect: "Allow"
-      Action:
-        - "s3:*"
-      Resource:
-        - "arn:aws:s3:::rs-school-app-bucket-upload/*"
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action: "s3:ListBucket"
+          Resource:
+            - "arn:aws:s3:::rs-school-app-bucket-upload"
+
+        - Effect: "Allow"
+          Action:
+            - "s3:*"
+          Resource:
+            - "arn:aws:s3:::rs-school-app-bucket-upload/*"
+
+        - Effect: "Allow"
+          Action: "sqs:*"
+          Resource:
+            Fn::GetAtt: [SQSQueue, Arn]
+
+        - Effect: "Allow"
+          Action: "sns:*"
+          Resource:
+            Ref: SNSTopic
+
+  environment:
+    SQS_URL:
+      Ref: SQSQueue
+    SNS_ARN:
+      Ref: SNSTopic
+
+resources:
+  Resources:
+    SQSQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: rs-school-app-sqs-queue
+
+    SNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: rs-school-app-sns-topic
+
+    SNSSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: Dzmitry_Churadze1@epam.com
+        Protocol: email
+        TopicArn:
+          Ref: SNSTopic
 
 functions:
   getProducts:
@@ -34,6 +73,7 @@ functions:
       - http:
           path: products
           method: get
+
   getProductById:
     handler: src/getProductById.handler
     events:
@@ -44,6 +84,7 @@ functions:
             parameters:
               paths:
                 productId: true
+
   createProduct:
     handler: src/createProduct.handler
     events:
@@ -53,6 +94,7 @@ functions:
           request:
             schemas:
               application/json: ${file(src/schemas/createProductSchema.json)}
+
   importProductsFile:
     handler: src/importProductsFile.handler
     events:
@@ -63,6 +105,7 @@ functions:
             parameters:
               querystrings:
                 name: true
+
   importFileParser:
     handler: src/importFileParser.handler
     events:
@@ -72,3 +115,11 @@ functions:
           rules:
             - prefix: uploaded/
           existing: true
+
+  catalogBatchProcess:
+    handler: src/catalogBatchProcess.handler
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt: [SQSQueue, Arn]

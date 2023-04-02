@@ -71,7 +71,7 @@ functions:
   basicAuthorizer:
     handler: src/basicAuthorizer.handler
 
-  getProducts1:
+  getProducts:
     handler: src/getProducts.handler
     events:
       - http:

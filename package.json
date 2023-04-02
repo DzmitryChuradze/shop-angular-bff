@@ -26,6 +26,7 @@
     "eslint": "^8.35.0",
     "jest": "^29.4.3",
     "serverless": "^3.27.0",
+    "serverless-dotenv-plugin": "^6.0.0",
     "serverless-webpack": "^5.11.0",
     "ts-jest": "^29.0.5",
     "ts-loader": "^9.4.2",

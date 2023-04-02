@@ -1,7 +1,8 @@
-service: shop-angular-be
+service: shop-angular-bff
 
 plugins:
   - serverless-webpack
+  - serverless-dotenv-plugin
 
 package:
   individually: true
@@ -67,7 +68,10 @@ resources:
           Ref: SNSTopic
 
 functions:
-  getProducts:
+  basicAuthorizer:
+    handler: src/basicAuthorizer.handler
+
+  getProducts1:
     handler: src/getProducts.handler
     events:
       - http:
@@ -105,6 +109,11 @@ functions:
             parameters:
               querystrings:
                 name: true
+          authorizer:
+            type: token
+            name: basicAuthorizer
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 0
 
   importFileParser:
     handler: src/importFileParser.handler
